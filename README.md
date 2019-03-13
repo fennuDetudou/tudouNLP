@@ -12,7 +12,7 @@
 # 依赖项
 ## 依赖项
 
-`python >=3.5.2
+`python >=3.6
 tensorflow >= 1.12.0`
 ## 硬件
 1. 预测与使用在普通cpu机器上既可以运行
@@ -30,21 +30,31 @@ tensorflow >= 1.12.0`
 
 ## train函数
 
+新建一个实例
+
+`trainer=tudouNLP.models.train.train(*params)`
+
 ### help
 
 train函数的说明函数，包括一些参数及文件格式的说明
 
-`tudouNLP.models.train.train.help()`
+`trainer.help()`
 
 ### 训练
 
-`tudouNLP.models.train.train(*params)`
+`trainer()`
+
+### 预测
+
+`results=trainer.predict()`
 
 #### 说明
 
-1. 没有返回值，根据参数中task_name开始不同的训练任务
+1. 训练的时候没有返回值，根据参数中task_name开始不同的训练任务
 
 1. 包括文本分类，序列标注以及句子匹配任务的训练
+
+1. 预测时要注意与训练时参数要相同（主要是`label_list、label_dict`），同时输出目录也要相同
 
 1. 参数简介
 

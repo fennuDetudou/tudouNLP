@@ -273,7 +273,7 @@ class sentence_pair(DataProcessor):
                 split_line = line.strip().split('\t')
                 # 数据清洗
                 if len(split_line) != 4:
-                    print(split_line)
+                    print("脏数据：",split_line)
                     continue
                 text_a = tokenization.convert_to_unicode(split_line[1])
                 text_b = tokenization.convert_to_unicode(split_line[2])
@@ -300,7 +300,7 @@ class sentence_pair(DataProcessor):
 
                 #### 数据清洗
                 if len(split_line) != 4:
-                    print(split_line)
+                    print("脏数据：",split_line)
                     continue
                 text_a = tokenization.convert_to_unicode(split_line[1])
                 text_b = tokenization.convert_to_unicode(split_line[2])
@@ -369,8 +369,6 @@ class classify_text(DataProcessor):
                 label = '0'
             else:
                 label = tokenization.convert_to_unicode(line[1].strip())
-            print(text_a)
-            print(label)
             examples.append(
                 InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
 

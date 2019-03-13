@@ -1,5 +1,10 @@
 import os
 
+from tools import ner_predict_utils
+from tools import tag_predict_utils
+from tools import sentiment_predict_utils
+
+
 class train(object):
     def __init__(self,task_name,data_dir,model_dir,output_dir,
                  label_dict='label2id.pkl',label_list=None,
@@ -30,7 +35,7 @@ class train(object):
         model_dir1=os.path.abspath(model_dir)
         self.model_dir=os.path.join(model_dir1,'bert_model.ckpt')
 
-        work_path=os.getcwd()
+        self.work_path=os.getcwd()
 
         self.output_dir=os.path.abspath(output_dir)
         self.eval=eval
@@ -38,12 +43,14 @@ class train(object):
         self.lr=learning_rate
         self.batch_size=batch_size
 
-        module_path = os.path.dirname(__file__)
-        os.chdir(module_path)
+        self.module_path = os.path.dirname(__file__)
+
+    def __call__(self):
+        os.chdir(self.module_path)
         try:
             self._train()
         finally:
-            os.chdir(work_path)
+            os.chdir(self.work_path)
 
     def _train(self):
 
@@ -92,6 +99,30 @@ class train(object):
                                                          self.batch_size,
                                                          self.lr,
                                                          self.output_dir))
+
+    def _predict(self):
+        os.system('python run_classifier.py \
+                                         --label_dict={} \
+                                         --label_list={} \
+                                         --task_name={} \
+                                         --do_predict=true \
+                                         --data_dir={} \
+                                         --vocab_file=./vocab.txt \
+                                         --bert_config_file=./bert_config.json \
+                                         --init_checkpoint={} \
+                                         --max_seq_length={} \
+                                         --train_batch_size={} \
+                                         --learning_rate={} \
+                                         --output_dir={}'.format(self.label_dict,
+                                                                 self.label_list,
+                                                                 self.task_name,
+                                                                 self.data_dir,
+                                                                 self.model_dir,
+                                                                 self.max_seq_length,
+                                                                 self.batch_size,
+                                                                 self.lr,
+                                                                 self.output_dir))
+
     @ staticmethod
     def help():
         print('''训练函数——参数解析：
@@ -112,5 +143,50 @@ class train(object):
         3. 句子配对任务文件格式为 index text1 text2 label  ，其中index为不必要的列，中间分隔符为\t
         ''')
 
+    def predict(self):
+        os.chdir(self.module_path)
+        try:
+            self._predict()
+
+            if self.task_name == 'ner' :
+
+                text_file = os.path.join(self.output_dir,'token_test.txt')
+                label_file = os.path.join(self.output_dir,'label_test.txt')
+
+                texts = ner_predict_utils.get_data(text_file)
+                labels = ner_predict_utils.get_data(label_file)
+                texts = ner_predict_utils.proecess_data(texts)
+                labels = ner_predict_utils.proecess_data(labels)
+
+                result = ner_predict_utils.recognized_entity(texts, labels)
+                return result
+
+            if self.task_name =='tag':
+                text_file = os.path.join(self.output_dir, 'token_test.txt')
+                label_file = os.path.join(self.output_dir, 'label_test.txt')
+
+                texts = tag_predict_utils.get_data(text_file)
+                label = tag_predict_utils.get_data(label_file)
+                texts = tag_predict_utils.proecess_data(texts)
+                labels = tag_predict_utils.proecess_data(label)
+
+                cut, posseg = tag_predict_utils.segmentor(texts, labels)
+
+                return cut,posseg
+
+            if self.task_name == 'classify':
+                lines = sentiment_predict_utils.get_data(os.path.join(self.output_dir,'test_results.tsv'))
+                lines = sentiment_predict_utils.get_result(lines)
+                results = sentiment_predict_utils.output(lines,True)
+                return results
+
+            if self.task_name == 'pair':
+                lines = sentiment_predict_utils.get_data(os.path.join(self.output_dir, 'test_results.tsv'))
+                lines = sentiment_predict_utils.get_result(lines)
+                results = sentiment_predict_utils.output(lines, True)
+                return results
+
+        finally:
+            os.chdir(self.work_path)
 
 
